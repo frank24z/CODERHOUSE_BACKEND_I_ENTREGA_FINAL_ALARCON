@@ -1,0 +1,34 @@
+[
+  {
+    "id": 2,
+    "title": "NOTEBOOK GAMER II",
+    "description": "ULTIMATE GAMER",
+    "code": "SKU124",
+    "price": 2800,
+    "status": true,
+    "stock": 10,
+    "category": "PC",
+    "thumbnails": [
+      "img1.jpg",
+      "img2.jpg"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "MOUSE GAMER",
+    "description": "Mouse con luces RGB",
+    "code": "MG123",
+    "price": 500,
+    "status": true,
+    "stock": 10,
+    "category": "Periféricos",
+    "thumbnails": [
+      "mouse1.jpg"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "NOTEBOOK GAMER II",
+    "price": 2800
+  }
+]
