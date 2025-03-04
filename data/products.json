@@ -30,5 +30,10 @@
     "id": 4,
     "title": "NOTEBOOK GAMER II",
     "price": 2800
+  },
+  {
+    "id": 5,
+    "title": "PC",
+    "price": 400
   }
 ]

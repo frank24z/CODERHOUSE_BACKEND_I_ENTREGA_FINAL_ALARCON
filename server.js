@@ -60,4 +60,4 @@ io.on('connection', (socket) => {
 });
 
 //Iniciar servidor
-server.listen(PORT, () => console.log(`Servidor en http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`Servidor en http://localhost:${PORT}/realtimeproducts`));
