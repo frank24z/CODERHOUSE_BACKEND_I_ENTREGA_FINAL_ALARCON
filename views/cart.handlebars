@@ -40,14 +40,14 @@
 
   const cartId = '{{cart._id}}';
 
-  // Eliminar producto con DELETE /api/carts/:cid/products/:pid
+  //Eliminar producto con DELETE 
   async function removeProduct(productId) {
     const res = await fetch(`/api/carts/${cartId}/products/${productId}`, { method: 'DELETE' });
     if (res.ok) location.reload();
     else alert("Error eliminando producto");
   }
 
-  // Vaciar carrito con DELETE /api/carts/:cid
+  //Vaciar carrito con DELETE 
   async function clearCart() {
     const res = await fetch(`/api/carts/${cartId}`, { method: 'DELETE' });
     if (res.ok) location.reload();

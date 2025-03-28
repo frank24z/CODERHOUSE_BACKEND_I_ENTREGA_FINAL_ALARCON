@@ -1,10 +1,9 @@
-// routes/products.routes.js
 const express = require('express');
 const Product = require('../models/Product');
 
 const router = express.Router();
 
-// GET: listado de productos con paginación y filtros
+//Listado de productos con paginación y filtros
 router.get('/', async (req, res) => {
     const { limit = 10, page = 1, sort, query } = req.query;
     const options = {
@@ -16,7 +15,7 @@ router.get('/', async (req, res) => {
 
     let filter = {};
     if (query) {
-        // Si query es "true" o "false", filtramos por status; sino, por categoría
+   
         if (query === 'true' || query === 'false') {
             filter.status = query === 'true';
         } else {
@@ -43,7 +42,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET producto por ID
+//GET ID de producto 
 router.get('/:id', async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
@@ -53,7 +52,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// POST: crear producto
+//POST: crear producto
 router.post('/', async (req, res) => {
     try {
         const newProduct = new Product(req.body);
@@ -64,7 +63,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// DELETE: eliminar producto
+//DELETE: eliminar producto
 router.delete('/:id', async (req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.id);

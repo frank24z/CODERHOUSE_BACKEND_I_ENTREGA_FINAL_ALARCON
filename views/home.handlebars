@@ -3,11 +3,11 @@
 <button onclick="goToMyCart()">Ver Mi Carrito</button>
 
 <script>
-  // Crea o reusa el carrito en localStorage
+  // Crea con LocalStorage
   async function getOrCreateCartId() {
     let cartId = localStorage.getItem('cartId');
     if (!cartId) {
-      // Crear carrito con POST /api/carts
+      //Post para crear carrito
       const res = await fetch('/api/carts', { method: 'POST' });
       if (res.ok) {
         const newCart = await res.json();

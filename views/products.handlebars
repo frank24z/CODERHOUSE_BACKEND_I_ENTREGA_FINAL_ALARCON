@@ -39,12 +39,12 @@
 </form>
 
 <script>
-  // 1. Ir a Home
+
   function goHome() {
     window.location.href = '/';
   }
 
-  // 2. Crear o reusar carrito (mismo código que en home)
+
   async function getOrCreateCartId() {
     let cartId = localStorage.getItem('cartId');
     if (!cartId) {
@@ -61,7 +61,7 @@
     return cartId;
   }
 
-  // 3. Agregar producto con POST /api/products
+
   document.getElementById('addProductForm').addEventListener('submit', async e => {
     e.preventDefault();
     const form = e.target;
@@ -85,7 +85,7 @@
     }
   });
 
-  // 4. Eliminar producto con DELETE /api/products/:id
+
   async function deleteProduct(id) {
     if (!confirm("¿Eliminar producto?")) return;
     const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
@@ -93,7 +93,7 @@
     else alert("Error eliminando producto");
   }
 
-  // 5. Agregar producto al carrito con POST /api/carts/:cartId/product/:productId
+
   async function addToCart(productId) {
     const cartId = await getOrCreateCartId();
     if (!cartId) return;
