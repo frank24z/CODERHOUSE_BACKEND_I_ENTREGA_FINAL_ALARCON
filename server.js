@@ -1,63 +1,68 @@
+// server.js
 const express = require('express');
 const { engine } = require('express-handlebars');
 const path = require('path');
 const http = require('http');
-const socketIo = require('socket.io');
-const fs = require('fs');
+const socketIo = require('socket.io'); // Si no usas websockets, omítelo
+const mongoose = require('mongoose');
+require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server); // Si no usas websockets, omítelo
+const PORT = process.env.PORT || 8080;
 
-const PORT = 8080;
+// Conectar a MongoDB Atlas
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("🟢 Conectado a MongoDB Atlas"))
+  .catch(err => console.error("🔴 Error al conectar a MongoDB:", err));
 
-//Handlebars
+// Configurar Handlebars
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
-//Middleware
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-//Importar rutas
+// Rutas de API
 const productsRoutes = require('./routes/products.routes');
 const cartsRoutes = require('./routes/carts.routes');
-
 app.use('/api/products', productsRoutes);
 app.use('/api/carts', cartsRoutes);
 
-//Ruta views normal
+// Rutas de vistas
 app.get('/', (req, res) => {
-    const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf-8'));
-    res.render('home', { products });
+  // Home con botones "Ver Productos" y "Ver mi Carrito"
+  res.render('home');
 });
 
-//Ruta views realtime
-app.get('/realtimeproducts', (req, res) => {
-    res.render('realTimeProducts');
+// Vista de productos
+app.get('/products', async (req, res) => {
+  const Product = require('./models/Product');
+  const products = await Product.find().lean();
+  res.render('products', { products });
 });
 
-//WebSockets
-io.on('connection', (socket) => {
-    console.log('Cliente conectado');
-
-    socket.on('newProduct', (product) => {
-        let products = JSON.parse(fs.readFileSync('./data/products.json', 'utf-8'));
-        const newProduct = { id: products.length ? products[products.length - 1].id + 1 : 1, ...product };
-        products.push(newProduct);
-        fs.writeFileSync('./data/products.json', JSON.stringify(products, null, 2));
-        io.emit('updateProducts', products);
-    });
-
-    socket.on('deleteProduct', (id) => {
-        let products = JSON.parse(fs.readFileSync('./data/products.json', 'utf-8'));
-        products = products.filter(p => p.id != id);
-        fs.writeFileSync('./data/products.json', JSON.stringify(products, null, 2));
-        io.emit('updateProducts', products);
-    });
+// Vista de carrito
+app.get('/carts/:cid', async (req, res) => {
+  const Cart = require('./models/Cart');
+  try {
+    const cart = await Cart.findById(req.params.cid)
+      .populate('products.product')
+      .lean();
+    if (!cart) return res.status(404).send('Carrito no encontrado');
+    res.render('cart', { cart });
+  } catch (err) {
+    res.status(500).send('Error al obtener el carrito');
+  }
 });
 
-//Iniciar servidor
-server.listen(PORT, () => console.log(`Servidor en http://localhost:${PORT}/realtimeproducts`));
+// WebSockets (opcional) ...
+// io.on('connection', ...);
+
+server.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});

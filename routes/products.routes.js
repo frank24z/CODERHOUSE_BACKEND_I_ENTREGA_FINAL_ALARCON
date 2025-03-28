@@ -1,39 +1,77 @@
+// routes/products.routes.js
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const Product = require('../models/Product');
 
 const router = express.Router();
-const productsFile = path.join(__dirname, '../data/products.json');
 
-const readJSON = () => JSON.parse(fs.readFileSync(productsFile, 'utf-8'));
-const writeJSON = (data) => fs.writeFileSync(productsFile, JSON.stringify(data, null, 2));
+// GET: listado de productos con paginación y filtros
+router.get('/', async (req, res) => {
+    const { limit = 10, page = 1, sort, query } = req.query;
+    const options = {
+        limit: parseInt(limit),
+        page: parseInt(page),
+        lean: true,
+        sort: sort ? { price: sort === 'asc' ? 1 : -1 } : {}
+    };
 
-//Obtener productos
-router.get('/', (req, res) => res.json(readJSON()));
+    let filter = {};
+    if (query) {
+        // Si query es "true" o "false", filtramos por status; sino, por categoría
+        if (query === 'true' || query === 'false') {
+            filter.status = query === 'true';
+        } else {
+            filter.category = query;
+        }
+    }
 
-//Obtener producto por ID
-router.get('/:pid', (req, res) => {
-    const product = readJSON().find(p => p.id == req.params.pid);
-    product ? res.json(product) : res.status(404).json({ error: 'Producto no encontrado' });
+    try {
+        const result = await Product.paginate(filter, options);
+        res.json({
+            status: 'success',
+            payload: result.docs,
+            totalPages: result.totalPages,
+            prevPage: result.prevPage,
+            nextPage: result.nextPage,
+            page: result.page,
+            hasPrevPage: result.hasPrevPage,
+            hasNextPage: result.hasNextPage,
+            prevLink: result.hasPrevPage ? `/api/products?page=${result.prevPage}` : null,
+            nextLink: result.hasNextPage ? `/api/products?page=${result.nextPage}` : null
+        });
+    } catch (error) {
+        res.status(500).json({ status: 'error', error: error.message });
+    }
 });
 
-//Agregar producto
-router.post('/', (req, res) => {
-    const products = readJSON();
-    const newProduct = { id: products.length ? products[products.length - 1].id + 1 : 1, ...req.body };
-    products.push(newProduct);
-    writeJSON(products);
-    req.app.get('io').emit('updateProducts', products);
-    res.status(201).json(newProduct);
+// GET producto por ID
+router.get('/:id', async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        product ? res.json(product) : res.status(404).json({ error: 'Producto no encontrado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-//Eliminar producto
-router.delete('/:pid', (req, res) => {
-    let products = readJSON();
-    products = products.filter(p => p.id != req.params.pid);
-    writeJSON(products);
-    req.app.get('io').emit('updateProducts', products);
-    res.json({ message: `Producto con ID ${req.params.pid} eliminado` });
+// POST: crear producto
+router.post('/', async (req, res) => {
+    try {
+        const newProduct = new Product(req.body);
+        await newProduct.save();
+        res.status(201).json(newProduct);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// DELETE: eliminar producto
+router.delete('/:id', async (req, res) => {
+    try {
+        await Product.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Producto eliminado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 module.exports = router;

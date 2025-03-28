@@ -1,0 +1,108 @@
+<h1>Lista de productos</h1>
+<button onclick="goHome()">Volver al inicio</button>
+
+<table border="1" cellpadding="10">
+  <thead>
+    <tr>
+      <th>Título</th>
+      <th>Precio</th>
+      <th>Stock</th>
+      <th>Categoría</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each products}}
+    <tr>
+      <td>{{title}}</td>
+      <td>${{price}}</td>
+      <td>{{stock}}</td>
+      <td>{{category}}</td>
+      <td>
+        <button onclick="addToCart('{{_id}}')">Agregar al carrito</button>
+        <button onclick="deleteProduct('{{_id}}')">Eliminar</button>
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<hr/>
+
+<h2>Agregar producto</h2>
+<form id="addProductForm">
+  <input type="text" name="title" placeholder="Título" required>
+  <input type="number" name="price" placeholder="Precio" required>
+  <input type="number" name="stock" placeholder="Stock" required>
+  <input type="text" name="category" placeholder="Categoría" required>
+  <button type="submit">Agregar</button>
+</form>
+
+<script>
+  // 1. Ir a Home
+  function goHome() {
+    window.location.href = '/';
+  }
+
+  // 2. Crear o reusar carrito (mismo código que en home)
+  async function getOrCreateCartId() {
+    let cartId = localStorage.getItem('cartId');
+    if (!cartId) {
+      const res = await fetch('/api/carts', { method: 'POST' });
+      if (res.ok) {
+        const newCart = await res.json();
+        cartId = newCart._id;
+        localStorage.setItem('cartId', cartId);
+      } else {
+        alert('Error creando carrito');
+        cartId = null;
+      }
+    }
+    return cartId;
+  }
+
+  // 3. Agregar producto con POST /api/products
+  document.getElementById('addProductForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const form = e.target;
+    const product = {
+      title: form.title.value,
+      price: form.price.value,
+      stock: form.stock.value,
+      category: form.category.value
+    };
+
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(product)
+    });
+
+    if (res.ok) {
+      location.reload();
+    } else {
+      alert("Error al agregar producto");
+    }
+  });
+
+  // 4. Eliminar producto con DELETE /api/products/:id
+  async function deleteProduct(id) {
+    if (!confirm("¿Eliminar producto?")) return;
+    const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+    if (res.ok) location.reload();
+    else alert("Error eliminando producto");
+  }
+
+  // 5. Agregar producto al carrito con POST /api/carts/:cartId/product/:productId
+  async function addToCart(productId) {
+    const cartId = await getOrCreateCartId();
+    if (!cartId) return;
+
+    const res = await fetch(`/api/carts/${cartId}/product/${productId}`, { method: 'POST' });
+    if (res.ok) {
+      alert("Producto agregado al carrito");
+    } else {
+      alert("Error al agregar al carrito");
+    }
+  }
+</script>

@@ -1,6 +1,34 @@
-<h1>Lista de Productos</h1>
-<ul>
-    {{#each products}}
-        <li>{{this.title}} - ${{this.price}}</li>
-    {{/each}}
-</ul>
+<h1>Bienvenido a la tienda</h1>
+<button onclick="goToProducts()">Ver Productos</button>
+<button onclick="goToMyCart()">Ver Mi Carrito</button>
+
+<script>
+  // Crea o reusa el carrito en localStorage
+  async function getOrCreateCartId() {
+    let cartId = localStorage.getItem('cartId');
+    if (!cartId) {
+      // Crear carrito con POST /api/carts
+      const res = await fetch('/api/carts', { method: 'POST' });
+      if (res.ok) {
+        const newCart = await res.json();
+        cartId = newCart._id;
+        localStorage.setItem('cartId', cartId);
+      } else {
+        alert('Error creando carrito');
+        cartId = null;
+      }
+    }
+    return cartId;
+  }
+
+  async function goToProducts() {
+    window.location.href = '/products';
+  }
+
+  async function goToMyCart() {
+    const cartId = await getOrCreateCartId();
+    if (cartId) {
+      window.location.href = `/carts/${cartId}`;
+    }
+  }
+</script>

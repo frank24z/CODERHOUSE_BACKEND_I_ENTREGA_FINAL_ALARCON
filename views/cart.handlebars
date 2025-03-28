@@ -1,0 +1,56 @@
+<h1>Mi carrito</h1>
+<button onclick="goHome()">Volver al inicio</button>
+<button onclick="goProducts()">Seguir comprando</button>
+
+{{#if cart.products.length}}
+<table border="1" cellpadding="10">
+  <thead>
+    <tr>
+      <th>Producto</th>
+      <th>Precio</th>
+      <th>Cantidad</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each cart.products}}
+    <tr>
+      <td>{{this.product.title}}</td>
+      <td>${{this.product.price}}</td>
+      <td>{{this.quantity}}</td>
+      <td>
+        <button onclick="removeProduct('{{this.product._id}}')">Eliminar</button>
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+<button onclick="clearCart()">Vaciar carrito</button>
+{{else}}
+<p>Tu carrito está vacío.</p>
+{{/if}}
+
+<script>
+  function goHome() {
+    window.location.href = '/';
+  }
+  function goProducts() {
+    window.location.href = '/products';
+  }
+
+  const cartId = '{{cart._id}}';
+
+  // Eliminar producto con DELETE /api/carts/:cid/products/:pid
+  async function removeProduct(productId) {
+    const res = await fetch(`/api/carts/${cartId}/products/${productId}`, { method: 'DELETE' });
+    if (res.ok) location.reload();
+    else alert("Error eliminando producto");
+  }
+
+  // Vaciar carrito con DELETE /api/carts/:cid
+  async function clearCart() {
+    const res = await fetch(`/api/carts/${cartId}`, { method: 'DELETE' });
+    if (res.ok) location.reload();
+    else alert("Error vaciando carrito");
+  }
+</script>
